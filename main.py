@@ -4,6 +4,8 @@ from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
+from colorama import init
+from colorama import Fore
 
 FAKE_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -72,6 +74,19 @@ def get_shows_from_piratebay_html(html: str, current_date) -> [str]:
     return shows
 
 
+def get_color_by_show_name(name) -> Fore:
+    if "raw" in name.lower():
+        return Fore.RED
+    elif "rampage" in name.lower():
+        return Fore.YELLOW
+    elif "smackdown" in name.lower():
+        return Fore.BLUE
+    elif "dynamite" in name.lower():
+        return Fore.YELLOW
+    else:
+        return Fore.WHITE
+
+
 def find_data_from_piratebay() -> [str]:
     """Crawl piratebay website with search terms and return list of shows"""
     shows, date = get_latest_show()
@@ -94,11 +109,13 @@ def find_data_from_piratebay() -> [str]:
     # Prompt user to select the best episode
     print("\n\n\n")
     for i, episode in enumerate(sorted_episode_by_seeds):
-        print(f"{i + 1}. {episode['name']}\t\t\tSeeders: {episode['seeders']}")
+        color = get_color_by_show_name(episode['name'])
+        print(color, f"{i + 1}. {episode['name']}\t\t\tSeeders: {episode['seeders']}")
     print("\n\n\n")
 
     try:
-        choice = int(input("Enter the number of the episode you want to download: "))
+        print(Fore.CYAN, "Enter the number of the episode you want to download: ", end="")
+        choice = int(input())
     except ValueError:
         return "Invalid input 😭"
     if choice > len(sorted_episode_by_seeds):
@@ -107,7 +124,7 @@ def find_data_from_piratebay() -> [str]:
     magnet_url = sorted_episode_by_seeds[choice - 1]['url']
     # Prompt if user wants to download the episode
     print("\n\n\n")
-    print(f"Do you want to download {sorted_episode_by_seeds[choice - 1]['name']}? (y/n)")
+    print(Fore.CYAN, f"Do you want to download {sorted_episode_by_seeds[choice - 1]['name']}? (y/n)")
     choice = input("Enter your choice: ")
     if choice.lower() == 'y':
         print("\n\n\n")
