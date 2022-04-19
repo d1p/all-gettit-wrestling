@@ -75,23 +75,26 @@ def get_shows_from_piratebay_html(html: str, current_date) -> [str]:
 def find_data_from_piratebay() -> [str]:
     """Crawl piratebay website with search terms and return list of shows"""
     shows, date = get_latest_show()
-    show_name = shows[0] + f" {date.year} {date.strftime('%m')} {date.day}"
-    episodes = []
-    for site in PIRATE_BAY_SITES:
-        url = site(show_name)
-        r = requests.get(url, headers=FAKE_HEADERS)
-        if r.status_code != 200:
-            return []
-        episodes.extend(get_shows_from_piratebay_html(r.text, date))
+    total_episodes = []
+    for show in shows:
+        show_name = show + f" {date.year} {date.strftime('%m')} {date.day}"
+        for site in PIRATE_BAY_SITES:
+            url = site(show_name)
+            r = requests.get(url, headers=FAKE_HEADERS)
+            if r.status_code != 200:
+                return []
+            episode_list = get_shows_from_piratebay_html(r.text, date)
+            sorted_episode_by_seeds = sorted(episode_list, key=lambda k: k['seeders'], reverse=True)
+            total_episodes.extend(sorted_episode_by_seeds[:3])
 
-    sorted_episode_by_seeds = sorted(episodes, key=lambda k: k['seeders'], reverse=True)
+    sorted_episode_by_seeds = sorted(total_episodes, key=lambda k: k['seeders'], reverse=True)
     if len(sorted_episode_by_seeds) == 0:
         return "No episode found 😭"
 
     # Prompt user to select the best episode
     print("\n\n\n")
     for i, episode in enumerate(sorted_episode_by_seeds):
-        print(f"{i + 1}. {episode['name']}")
+        print(f"{i + 1}. {episode['name']}\t\t\tSeeders: {episode['seeders']}")
     print("\n\n\n")
 
     try:
